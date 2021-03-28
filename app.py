@@ -6,7 +6,6 @@
 
 import os
 import datetime
-import pdb
 import logging
 import requests
 
@@ -14,32 +13,29 @@ from slack_sdk import WebClient
 from flask import Flask, request, Response, json, jsonify
 from slackeventsapi import SlackEventAdapter
 from collections import OrderedDict, deque
+from pathlib import Path
+from dotenv import load_dotenv
 
-
-# logging config
-with open('test.log', 'w'):
-    logging.basicConfig(filename='test.log', level=logging.INFO,
-                        format='%(asctime)s:%(levelname)s:%(message)s')
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # init's flask app
 app = Flask('__name__')
 
 # This pulls our signing secret so we can handle events.
 slack_event_adapter = SlackEventAdapter(
-    os.environ.get('SIGNING_SECRET'), '/slack/events', app)
+    os.environ['SIGNING_SECRET'], '/slack/events', app)
 
 # Oauth Token, signing secret was exported to venv workspace
-client = WebClient(token=os.environ.get('SLACK_BOT_TOKEN'))
+client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
 
 # api_call is another way we can call end points on the slack api.
 BOT_ID = client.api_call("auth.test")['user_id']
 
-# queue - TODO
+# queue
 break_queue = deque(maxlen=3)
 
 # Slash command for accessing break view
-
-
 @app.route('/slack/break', methods=["GET", "POST"])
 def break_bot():
     """[Slash command for break punch]"""
@@ -177,8 +173,6 @@ def message_actions():
     return ''
 
 # The endpoint for help slash command
-
-
 @app.route('/slack/help', methods=["POST"])
 def slash_help():
     '''[A function help command message]'''
@@ -235,8 +229,6 @@ def slash_help():
     return ''
 
 # The endpoint for queue slash command
-
-
 @app.route('/slack/queue', methods=["POST"])
 def usersInQueue():
     '''[A function for break queue]'''
@@ -258,4 +250,4 @@ def usersInQueue():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run()
